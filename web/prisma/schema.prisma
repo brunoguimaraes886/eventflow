@@ -27,6 +27,8 @@ model User {
   accounts      Account[]
   role          Role      @default(USER)
   // < e aqui
+  bio        String?
+  removidoEm DateTime?
 
 
 
@@ -35,6 +37,27 @@ model User {
 
 // crie modelos novos!
 
+enum StatusPalestra {
+  RASCUNHO
+  PUBLICADA
+  ARQUIVADA
+}
+
+model Palestra {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  titulo       String
+  tema         String
+  descricao    String
+  duracao      Int                                  // em minutos
+  status       StatusPalestra @default(RASCUNHO)
+  autorId      String                               // vem da SESSÃO, não é @relation
+  autorNome    String
+  removidoEm   DateTime?                            // null = ativa (soft delete)
+  criadoEm     DateTime       @default(now())
+  atualizadoEm DateTime       @updatedAt
+
+  @@map("palestra")
+}
 
 
 
