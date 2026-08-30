@@ -1,19 +1,10 @@
-import LoginForm from './_components/LoginForm';
+import { LoginForm } from "./_components";
 
-function LoginPage() {
-  return ( 
-    <main className="lg:h-screen flex">
-      <div className="w-[55%] h-full flex flex-col gap-8 items-center justify-center">
-        <LoginForm />
-      </div>
-
-      <div className="login-background h-full w-[45%] flex flex-col items-center py-32">
-        <div className="text-pink-500 flex gap-4">
-          <h1 className='font-bold text-[64px]'>monorepo</h1>
-        </div>
-      </div>
-    </main>
-   );
+export default function LoginPage() {
+  return (
+    <div className="mx-auto max-w-md">
+      <h1 className="mb-6 text-2xl font-semibold text-gray-900">Entrar</h1>
+      <LoginForm />
+    </div>
+  );
 }
-
-export default LoginPage;

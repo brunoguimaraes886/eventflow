@@ -1,0 +1,18 @@
+meta {
+  name: atualizar palestra
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{baseUrl}}/palestras/{{palestraId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "titulo": "Testes automatizados na pratica",
+    "status": "ARQUIVADA"
+  }
+}

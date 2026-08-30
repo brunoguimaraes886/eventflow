@@ -12,16 +12,17 @@ post {
 
 body:json {
   {
-    "email": "daniela63@yahoo.com", 
+    "email": "tess.cremin@gmail.com", 
     "password": "Teste123", 
     "callbackURL": "/"
   }
 }
 
 script:post-response {
-  if (res.body && res.body.token) {
-    bru.setVar("sessionValue", res.body.token);
+  const token = res.body?.token || res.body?.session?.token;
+  if (token) {
+    bru.setVar("sessionValue", token);
   } else {
-    console.log("No ID found in response");
+    console.log("No token found in response");
   }
 }

@@ -1,0 +1,11 @@
+meta {
+  name: remover palestra
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{baseUrl}}/palestras/{{palestraId}}
+  body: none
+  auth: inherit
+}
