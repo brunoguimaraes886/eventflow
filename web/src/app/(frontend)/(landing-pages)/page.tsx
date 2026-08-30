@@ -1,31 +1,43 @@
-import LandingPagesNav from "@/components/base/nav/InitialNav";
-import Embarcar from "./_components/Embarcar";
-import { headers } from "next/headers";
-import { auth } from "@/auth";
-import CarouselExample from "./_components/CarouselExample";
+import { listarPublicadas, resumoDaVitrine } from "@/backend/services/palestras";
 
-export default async function Home() {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
-  
-  const isLogged = !!session?.user;
+import { ResumoVitrine, FiltroTema, CardPalestra } from "./_components";
+
+type Props = { searchParams: Promise<{ tema?: string }> };
+
+export default async function VitrinePage({ searchParams }: Props) {
+  // no Next 15+, searchParams também é Promise e precisa de await
+  const { tema } = await searchParams;
+
+  // chama o service DIRETO, sem passar pela API: isto é código de servidor.
+  // É o reaproveitamento que a arquitetura em camadas viabiliza.
+  const [palestras, resumo, todas] = await Promise.all([
+    listarPublicadas({ tema }),
+    resumoDaVitrine(),
+    listarPublicadas({}),
+  ]);
+
+  // temas distintos, sem repetição e sem for (RNF06)
+  const temas = [...new Set(todas.map((p) => p.tema))].sort();
 
   return (
-    <div className="min-h-screen">
-      <LandingPagesNav isLogged={isLogged} />
-      
-      <main className="h-[70vh] w-full pt-20 pb-16 flex flex-col items-center justify-center text-center">
-        <h1 className="font-bold text-5xl text-pink-800">Página de Exemplo</h1>
-        <p className="pt-4 text-xl">Comece a editar seu site em <em className="text-pink-400">/app/(frontend)/(landing-pages)/page.tsx</em></p>
-      </main>
+    <div>
+      <h1 className="mb-6 text-3xl font-semibold text-gray-900">Palestras</h1>
 
-      <div className="w-full flex items-center justify-center">
-        <Embarcar isLogged={isLogged} />
-      </div>
+      <ResumoVitrine total={resumo.total} duracaoMedia={resumo.duracaoMedia} />
+      <FiltroTema temas={temas} />
 
-      <p className="text-center pt-8">um carousel de exemplo :)</p>
-      <CarouselExample />
+      {palestras.length === 0 ? (
+        <p className="rounded-lg border border-dashed p-12 text-center text-gray-500">
+          Nenhuma palestra encontrada
+          {tema ? ` no tema "${tema}"` : ""}.
+        </p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {palestras.map((palestra) => (
+            <CardPalestra key={palestra.id} palestra={palestra} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
