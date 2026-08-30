@@ -5,16 +5,8 @@ import type { Role } from "./generated/prisma";
 
 // Configuration for different page types
 const ROUTE_CONFIG = {
-  authRequired: [
-    "/aprender",
-    "/dashboard",
-    "/perfil",
-    "/settings",
+    authRequired: [
     "/painel",
-    "/painel/palestras/nova",
-    "/painel/palestras",
-    "painel/perfil"
-    
   ],
   
   // Pages that require ADMIN or SUPER_ADMIN role
@@ -77,7 +69,7 @@ export async function proxy(request: NextRequest) {
   
   if (matchesAnyPattern(pathname, ROUTE_CONFIG.redirectIfAuth)) {
     if (isAuthenticated) {
-      return NextResponse.redirect(new URL("/aprender", request.url));
+      return NextResponse.redirect(new URL("/painel", request.url));
     }
     return NextResponse.next();
   }
