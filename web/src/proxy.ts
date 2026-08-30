@@ -10,6 +10,11 @@ const ROUTE_CONFIG = {
     "/dashboard",
     "/perfil",
     "/settings",
+    "/painel",
+    "/painel/palestras/nova",
+    "/painel/palestras",
+    "painel/perfil"
+    
   ],
   
   // Pages that require ADMIN or SUPER_ADMIN role

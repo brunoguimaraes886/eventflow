@@ -1,15 +1,10 @@
-import CadastroForm from "./_components/CadastroForm";
+import { CadastroForm } from "./_components";
 
-function Cadastro() {
-  return ( 
-    <>
-      <nav className="w-full py-6 px-8 text-pink-500 text-2xl font-bold">
-        monorepo base
-      </nav>
-      
+export default function CadastroPage() {
+  return (
+    <div className="mx-auto max-w-md">
+      <h1 className="mb-6 text-2xl font-semibold text-gray-900">Criar conta</h1>
       <CadastroForm />
-    </>
-   );
+    </div>
+  );
 }
-
-export default Cadastro;
