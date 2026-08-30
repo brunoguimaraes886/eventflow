@@ -26,7 +26,7 @@ export async function listarPublicadas({ tema, busca }: {
       status: "PUBLICADA",
       // RN04: o soft delete obriga TODA listagem a filtrar isto.
       // Esquecer aqui faz palestras "removidas" reaparecerem na tela.
-      removidoEm: null,
+      removidoEm: { isSet: false },
       // `undefined` faz o Prisma ignorar o campo. É assim que o filtro
       // fica opcional sem precisar montar o objeto `where` condicionalmente.
       tema: tema ?? undefined,
@@ -43,7 +43,7 @@ export async function contarAtivasDoAutor(autorId: string) {
   return prisma.palestra.count({
     where: {
       autorId,
-      removidoEm: null,
+      removidoEm: { isSet: false },
       // "Ativa" = ocupa uma das 3 vagas. ARQUIVADA não ocupa,
       // por isso o `in` lista só os dois primeiros estágios.
       status: { in: ["RASCUNHO", "PUBLICADA"] },
@@ -101,7 +101,7 @@ export async function listarPorAutor(autorId: string, status?: StatusPalestra) {
       // Vem da SESSÃO, nunca da query string. Se viesse da URL,
       // qualquer um listaria as palestras de qualquer outro.
       autorId,
-      removidoEm: null,
+      removidoEm: { isSet: false },
       // Filtro opcional por status — mesma técnica do `tema` acima.
       status: status ?? undefined,
     },
@@ -130,7 +130,7 @@ export async function atualizarPalestra(
 // ─────────────────────────────────────────────────────────────
 export async function resumoDaVitrine() {
   const palestras = await prisma.palestra.findMany({
-    where: { status: "PUBLICADA", removidoEm: null },
+    where: { status: "PUBLICADA", removidoEm: { isSet: false } },
     // `select` traz só o campo necessário em vez do documento inteiro.
     select: { duracao: true },
   });

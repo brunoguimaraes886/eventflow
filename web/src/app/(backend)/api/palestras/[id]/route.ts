@@ -6,6 +6,7 @@ import {
 import {
   atualizarPalestra,
   buscarPalestraPorId,
+  contarAtivasDoAutor,
   removerPalestra,
 } from "@/backend/services/palestras";
 import {
@@ -14,6 +15,8 @@ import {
   zodErrorHandler,
   getUserFromRequest,
 } from "@/utils/api/server";
+
+const LIMITE_ATIVAS = 3;
 
 type Contexto = { params: Promise<{ id: string }> };
 
@@ -44,6 +47,9 @@ export async function PATCH(request: NextRequest, { params }: Contexto) {
     // 1) o id da URL
     const { id } = await params;
 
+    const idValido = objectIdSchema.safeParse(id);
+    if (!idValido.success) return returnInvalidDataErrors(idValido.error);
+
     // 2) autenticacao -> 401
     const user = await getUserFromRequest(request);
     if (user instanceof NextResponse) return user;
@@ -69,6 +75,25 @@ export async function PATCH(request: NextRequest, { params }: Contexto) {
       return returnInvalidDataErrors(validationResult.error);
     }
 
+    // 5.5) RN03 tambem no PATCH: desarquivar faz a palestra voltar a ser ativa,
+    // e isso pode estourar o limite. So checa quando a transicao e de ARQUIVADA
+    // para um status ativo — nos demais casos a contagem nao muda.
+    const novoStatus = validationResult.data.status;
+    const vaiReativar =
+      palestra.status === "ARQUIVADA" &&
+      novoStatus !== undefined &&
+      novoStatus !== "ARQUIVADA";
+
+    if (vaiReativar) {
+      const ativas = await contarAtivasDoAutor(user.id);
+      if (ativas >= LIMITE_ATIVAS) {
+        return NextResponse.json(
+          { error: `Limite de ${LIMITE_ATIVAS} palestras ativas atingido` },
+          { status: 409 },
+        );
+      }
+    }
+
     // 6) so agora altera
     const atualizada = await atualizarPalestra(id, validationResult.data);
     return NextResponse.json(atualizada);
@@ -82,6 +107,9 @@ export async function PATCH(request: NextRequest, { params }: Contexto) {
 export async function DELETE(request: NextRequest, { params }: Contexto) {
   try {
     const { id } = await params;
+
+    const idValido = objectIdSchema.safeParse(id);
+    if (!idValido.success) return returnInvalidDataErrors(idValido.error);
 
     const user = await getUserFromRequest(request);
     if (user instanceof NextResponse) return user;

@@ -1,0 +1,15 @@
+meta {
+  name: listar por tema
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/palestras?tema=Qualidade
+  body: none
+  auth: inherit
+}
+
+params:query {
+  tema: Qualidade
+}
