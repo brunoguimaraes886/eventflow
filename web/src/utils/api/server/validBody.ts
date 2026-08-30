@@ -7,7 +7,7 @@ export async function validBody(request: any) {
     return body;
    
   } catch (e) {
-    return NextResponse.json(
+    throw NextResponse.json(
       { error: 'Formato de dados inválido - JSON malformado' },
       { status: 400 }
     )

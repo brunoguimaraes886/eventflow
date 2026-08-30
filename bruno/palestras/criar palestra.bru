@@ -1,0 +1,26 @@
+meta {
+  name: criar palestra
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/palestras
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "titulo": "VSF PORRA",
+    "tema": "Qualidade",
+    "descricao": "Como comecar a testar sem sofrer no dia a dia",
+    "duracao": 45
+  }
+}
+
+script:post-response {
+  if (res.body && res.body.id) {
+    bru.setVar("palestraId", res.body.id);
+  }
+}

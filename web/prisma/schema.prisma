@@ -28,7 +28,7 @@ model User {
   role          Role      @default(USER)
   // < e aqui
   bio        String?
-  removidoEm DateTime?
+  removidoEm DateTime? 
 
 
 
