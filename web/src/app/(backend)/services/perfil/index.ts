@@ -25,7 +25,7 @@ export async function removerPerfil(userId: string) {
   // pessoa tambem sao marcadas como removidas, para que a vitrine nao
   // fique com palestra de autor inexistente.
   await prisma.palestra.updateMany({
-    where: { autorId: userId, removidoEm: null },
+    where: { autorId: userId, removidoEm: { isSet: false } },
     data: { removidoEm: agora },
   });
 
