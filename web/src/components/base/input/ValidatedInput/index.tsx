@@ -9,8 +9,8 @@ import type { InputHTMLAttributes } from 'react';
 
 interface ValidatedInputProps extends InputHTMLAttributes<HTMLInputElement> {
   title: string;
-  dependencies?: any[];
-  setValue?: (value: any) => void;
+  dependencies?: unknown[];
+  setValue?: (value: string | number | readonly string[]) => void;
   overrideValidate?: (value: string) => boolean;
   isValid?: boolean | null;
   onValidChange?: (valid: boolean) => void;

@@ -14,7 +14,7 @@ export function returnInvalidDataErrors(error: ZodError) {
   )
 }
 
-export function zodErrorHandler(error: any) {
+export function zodErrorHandler(error: unknown) {
   if (error instanceof ZodError) {
     const errors = error.issues.map(err => ({
       campo: err.path.join('.'),

@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
    
-export async function validBody(request: any) {
+export async function validBody(request: NextRequest) {
   try {
     const body = await request.json();
     return body;
