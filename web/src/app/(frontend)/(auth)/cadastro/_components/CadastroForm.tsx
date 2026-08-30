@@ -1,171 +1,129 @@
-'use client'
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-
-import PasswordRequirement from "./PasswordRequirement";
-import RequiredTag from "@/components/base/input/RequiredTag";
-import { hasLowercase, hasMinLength, hasNumber, hasUppercase, validatePassword, validateConfirmPassword } from "@/utils";
-
-import { toast } from "react-hot-toast";
-import { redirect } from "next/navigation";
+import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 
-import dynamic from 'next/dynamic';
+export function CadastroForm() {
+  const router = useRouter();
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [bio, setBio] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
-const GoogleAuthButton = dynamic(() => import('@/components/auth/GoogleLoginButton'));
-const CredentialsButton = dynamic(() => import('@/components/auth/CredentialsButton'));
-const ValidatedInput = dynamic(() => import('@/components/base/input/ValidatedInput'));
-
-function CadastroForm() {
-  const [loading, setLoading] = useState(true);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-
-  const handleCredentialsSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
+    setErro(null);
 
+    // Validação de conveniência: resposta rápida ao usuário.
+    // A validação que VALE continua sendo a do backend (RN02).
+    if (nome.trim().length < 3) {
+      setErro("Nome deve ter pelo menos 3 caracteres");
+      return;
+    }
+    if (senha.length < 8) {
+      setErro("Senha deve ter pelo menos 8 caracteres");
+      return;
+    }
+
+    setEnviando(true);
     try {
-      if (password !== confirmPassword) {
-        toast.error("As senhas não coincidem");
-        return;
-      }
-
-      if (!validatePassword(password)) {
-        toast.error("A senha não atende aos requisitos mínimos");
-        return;
-      }
-
-      const result = await authClient.signUp.email({
-        name,
-        email,
-        password,
-        callbackURL: "/",
+      const { error } = await authClient.signUp.email({
+        name: nome.trim(),
+        email: email.trim(),
+        password: senha,
       });
 
-      if (result.error) {
-        if (result.error.message?.includes('already exists') || result.error.message?.includes('duplicate')) {
-          toast.error("Este email já está cadastrado");
-        } else {
-          toast.error(result.error.message || "Erro inesperado");
-        }
-      } else {
-        toast.success(`Bem-vindo(a), ${name}!`);
-        
-        setTimeout(() => {
-          redirect('/');
-        }, 1000);
+      if (error) {
+        // e-mail duplicado cai aqui (RN09)
+        setErro(error.message ?? "Não foi possível criar a conta");
+        return;
       }
-    } catch (error: unknown) {
-      console.error('Signup error:', error);
-       
-      toast.error((error as any).message ?? "Erro inesperado");
+
+      // A bio não faz parte do Better Auth: salva num segundo passo.
+      if (bio.trim()) {
+        await fetch("/api/users/me", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bio: bio.trim() }),
+        });
+      }
+
+      toast.success("Conta criada com sucesso");
+      router.push("/painel");
+      router.refresh();
+    } catch {
+      setErro("Erro inesperado. Tente novamente.");
     } finally {
-      setLoading(false);
+      setEnviando(false);
     }
-  };
+  }
 
-  useEffect(() => {
-    setLoading(false);
-  }, []);
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <label className="flex flex-col gap-1">
+        <span className="text-sm text-gray-700">Nome</span>
+        <input
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          required
+          className="rounded-md border p-2"
+        />
+      </label>
 
-  return ( 
-    <div className="flex items-center justify-center">
-      <div className="pt-6 mb-12 px-2">
-        <h2 className="font-bold text-[40px] text-center leading-12">Aprenda se divertindo!</h2>
-        <p className="text-gray-500 pt-1 mb-8">Lições, exercícios, simulações e muita interatividade customizados <b>da forma que você preferir</b></p>
-        
-        <GoogleAuthButton disabled={loading} text="Cadastro com Google" />
+      <label className="flex flex-col gap-1">
+        <span className="text-sm text-gray-700">E-mail</span>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="rounded-md border p-2"
+        />
+      </label>
 
-        <div className="flex items-center gap-4 py-5">
-          <div className="flex-grow h-0.5 bg-gray-400" />
-          <p className="text-gray-400 text-lg">ou</p>
-          <div className="flex-grow h-0.5 bg-gray-400" />
-        </div>
+      <label className="flex flex-col gap-1">
+        <span className="text-sm text-gray-700">Senha</span>
+        <input
+          type="password"
+          value={senha}
+          onChange={(e) => setSenha(e.target.value)}
+          required
+          minLength={8}
+          className="rounded-md border p-2"
+        />
+      </label>
 
-        <form className="" onSubmit={handleCredentialsSubmit}>
-          <div className="flex flex-col gap-4">
-            <ValidatedInput
-              title="Nome"
-              placeholder="Vagalume da Silva"
-              name="name"
-              type="text"
-              value={name}
-              setValue={setName}
-              labelClassName='auth-label'
-              inputClassName='auth-input'
-              iconContainerClassName="auth-icon"
-              required
-            ><RequiredTag/></ValidatedInput>
-            <ValidatedInput
-              title="E-mail"
-              placeholder="exemplo@noctiluz.com.br"
-              name="email"
-              type="email"
-              value={email}
-              setValue={setEmail}
-              labelClassName='auth-label'
-              inputClassName='auth-input'
-              iconContainerClassName="auth-icon"
-              required
-            ><RequiredTag/></ValidatedInput>
-            <ValidatedInput
-              title="Senha"
-              placeholder="Insira sua senha"
-              name="password"
-              type="password"
-              value={password}
-              setValue={setPassword}
-              overrideValidate={validatePassword}
-              labelClassName="auth-label"
-              inputClassName="auth-input"
-              iconContainerClassName="auth-icon"
-              required
-            ><RequiredTag/></ValidatedInput>
-            <ValidatedInput
-              title="Confirmar Senha"
-              placeholder="Confirme sua senha"
-              name="confirmPassword"
-              type="password"
-              dependencies={[password]}
-              value={confirmPassword}
-              setValue={setConfirmPassword}
-              overrideValidate={(val) => validateConfirmPassword(val, password)}
-              labelClassName="auth-label"
-              inputClassName="auth-input"
-              iconContainerClassName="auth-icon"
-              required
-            ><RequiredTag/></ValidatedInput>
-            <p>
-              Senha deve ter pelo menos:
-              
-              <PasswordRequirement 
-                text="1 letra maiúscula"
-                validateFunction={() => hasUppercase(password)}
-              />
-              <PasswordRequirement 
-                text="1 letra minúscula"
-                validateFunction={() => hasLowercase(password)}
-              />
-              <PasswordRequirement 
-                text="1 número"
-                validateFunction={() => hasNumber(password)}
-              />
-              <PasswordRequirement 
-                text="8 caracteres"
-                validateFunction={() => hasMinLength(password)}
-              />
-            </p>
-          </div>
-          <CredentialsButton disabled={loading} className="mt-6">Cadastro</CredentialsButton>
-        </form>
-        
-        <Link href='/login' className="block w-fit mt-8 text-sm group">Já tem uma conta? <span className="text-pink-500 colorTransition border-b border-transparent group-hover:border-pink-500">Login</span></Link>
-      </div>
-    </div>
-   );
+      <label className="flex flex-col gap-1">
+        <span className="text-sm text-gray-700">Bio</span>
+        <textarea
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          rows={4}
+          className="rounded-md border p-2"
+        />
+      </label>
+
+      {erro && <p className="text-sm text-red-600">{erro}</p>}
+
+      <button
+        type="submit"
+        disabled={enviando}
+        className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700 disabled:opacity-50"
+      >
+        {enviando ? "Criando..." : "Criar conta"}
+      </button>
+
+      <p className="text-sm text-gray-600">
+        Já tem conta?{" "}
+        <Link href="/login" className="text-blue-600 hover:underline">
+          Entrar
+        </Link>
+      </p>
+    </form>
+  );
 }
-
-export default CadastroForm;
